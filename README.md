@@ -13,9 +13,9 @@ Next code will concat files specified in `*.bundle` files. Output files will hav
 var bundle = require('gulp-bundle-file');
 
 gulp.task('bundles', function() {
-    return gulp.src('./bundles/*.bundle')
-        .pipe(bundle.concat()) // concat files in each bundles
-        .pipe(gulp.dest('./dist/'));
+	return gulp.src('./bundles/*.bundle')
+		.pipe(bundle.concat()) // concat files in each bundles
+		.pipe(gulp.dest('./dist/'));
 });
 ```
 
@@ -26,10 +26,10 @@ var bundle = require('gulp-bundle-file');
 var uglify = require('gulp-uglify');
 
 gulp.task('bundles', function() {
-    return gulp.src('./bundles/*.js.bundle')
-        .pipe(bundle.list()) // lists files in all bundles
-        .pipe(uglify()) // send all js file to uglify module
-        .pipe(gulp.dest('./dist/'));
+	return gulp.src('./bundles/*.js.bundle')
+		.pipe(bundle.list()) // lists files in all bundles
+		.pipe(uglify()) // send all js file to uglify module
+		.pipe(gulp.dest('./dist/'));
 });
 ```
 
