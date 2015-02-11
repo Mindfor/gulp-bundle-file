@@ -1,12 +1,12 @@
 'use strict';
-var pluginName = 'gulp-bundle-file';
 var path = require('path')
 var through2 = require('through2');
-var byline = require('byline');
 var concat = require('gulp-concat');
 var gutil = require('gulp-util');
 var fs = require('vinyl-fs');
 var map = require('map-stream');
+
+var pluginName = 'gulp-bundle-file';
 
 // pushes files from pipe to array
 function pushTo(array) {
@@ -30,7 +30,7 @@ function checkFile(file, cb) {
 }
 
 // creates new pipe for files from bundle
-function srcBundleFile(file) {
+function processBundleFile(file, bundleExt) {
     // get paths
     var relative = path.relative(process.cwd(), file.path);
     var dir = path.dirname(relative);
@@ -41,39 +41,55 @@ function srcBundleFile(file) {
     lines.forEach(function(line) {
         resultFilePaths.push(path.join(dir, line));
     });
-    gutil.log(resultFilePaths);
 
     // find files and send to buffer
-    return fs.src(resultFilePaths);
+    return fs.src(resultFilePaths)
+        .pipe(recursiveBundle(bundleExt));
 }
 
-// addes files from bundle to current pipe
-function listBundleFiles() {
+// recursively processes files and unwraps bundle files
+function recursiveBundle(bundleExt) {
     return through2.obj(function(file, enc, cb) {
         if (!checkFile(file, cb))
             return;
 
-        srcBundleFile(file)
-            .pipe(pushTo(this))
-            .on('end', cb);
-    });
-}
+        // standart file push to callback
+        if (path.extname(file.path).toLowerCase() != bundleExt)
+            return cb(null, file);
 
-// concatenates files from bundle and replaces bundle file in current pipe
-function concatBundleFiles() {
-    return through2.obj(function(file, enc, cb) {
-        if (!checkFile(file, cb))
-            return;
-
-        var resultFileName = path.basename(file.path, path.extname(file.path));
-        srcBundleFile(file)
-            .pipe(concat(resultFileName))
+        // bundle file should be parsed
+        processBundleFile(file, bundleExt)
             .pipe(pushTo(this))
             .on('end', cb);
     });
 }
 
 module.exports = {
-    list: listBundleFiles,
-    concat: concatBundleFiles
+    // addes files from bundle to current pipe
+    list: function () {
+        return through2.obj(function(file, enc, cb) {
+            if (!checkFile(file, cb))
+                return;
+
+            var ext = path.extname(file.path).toLowerCase();
+            processBundleFile(file, ext)
+                .pipe(pushTo(this))
+                .on('end', cb);
+        });
+    },
+
+    // concatenates files from bundle and replaces bundle file in current pipe
+    concat: function concatBundleFiles() {
+        return through2.obj(function(file, enc, cb) {
+            if (!checkFile(file, cb))
+                return;
+
+            var ext = path.extname(file.path);
+            var resultFileName = path.basename(file.path, ext);
+            processBundleFile(file, ext)
+                .pipe(concat(resultFileName))
+                .pipe(pushTo(this))
+                .on('end', cb);
+        });
+    }
 }
