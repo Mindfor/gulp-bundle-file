@@ -15,8 +15,17 @@
         "concat"
     ],
     "main": "index.js",
-    "dependencies": {},
-    "devDependencies": {},
+    "dependencies": {
+        "gulp-concat": "^2.4.3",
+        "gulp-util": "^3.0.3",
+        "map-stream": "0.0.5",
+        "through2": "^0.6.3",
+        "vinyl-fs": "^0.3.13"
+    },
+    "devDependencies": {
+        "gulp": "^3.8.11",
+        "gulp-debug": "^2.0.0"
+    },
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1"
     },
