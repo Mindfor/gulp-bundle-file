@@ -7,7 +7,7 @@ Node Version | >= 0.10
 
 # Usage
 
-Next code will concat files specified in `*.bundle` files. Output files will have name without `.bundle` extension.
+Next code will concat files specified in `.bundle` files. Output files will have name without `.bundle` extension.
 
 ```JavaScript
 var bundle = require('gulp-bundle-file');
@@ -15,6 +15,21 @@ var bundle = require('gulp-bundle-file');
 gulp.task('bundles', function() {
 	return gulp.src('./bundles/*.bundle')
 		.pipe(bundle.concat()) // concat files in each bundles
+		.pipe(gulp.dest('./dist/'));
+});
+```
+
+You can process files specified in each `.bundle` with handler:
+
+```JavaScript
+var bundle = require('gulp-bundle-file');
+var less = require('gulp-less');
+
+gulp.task('bundles', function() {
+	return gulp.src('./bundles/*.bundle')
+		.pipe(bundle.concat(function (bundleSrc) {
+			return bundleSrc.pipe(less()); // process files with less before thay will be concated
+		}))
 		.pipe(gulp.dest('./dist/'));
 });
 ```
@@ -33,7 +48,7 @@ gulp.task('bundles', function() {
 });
 ```
 
-# Example
+# Bundle file example
 
 If `test.js.bundle` contains text:
 ```

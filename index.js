@@ -30,7 +30,7 @@ function checkFile(file, cb) {
 }
 
 // creates new pipe for files from bundle
-function processBundleFile(file, bundleExt) {
+function processBundleFile(file, bundleExt, bundleHandler) {
 	// get paths
 	var relative = path.relative(process.cwd(), file.path);
 	var dir = path.dirname(relative);
@@ -43,8 +43,11 @@ function processBundleFile(file, bundleExt) {
 	});
 
 	// find files and send to buffer
-	return fs.src(resultFilePaths)
+	var bundleSrc = fs.src(resultFilePaths)
 		.pipe(recursiveBundle(bundleExt));
+	if (bundleHandler && typeof bundleHandler === 'function')
+		bundleSrc = bundleHandler(bundleSrc);
+	return bundleSrc;
 }
 
 // recursively processes files and unwraps bundle files
@@ -79,14 +82,15 @@ module.exports = {
 	},
 
 	// concatenates files from bundle and replaces bundle file in current pipe
-	concat: function concatBundleFiles() {
+	// first parameter is function that handles source stream for each bundle
+	concat: function (bundleHandler) {
 		return through2.obj(function(file, enc, cb) {
 			if (!checkFile(file, cb))
 				return;
 
 			var ext = path.extname(file.path);
 			var resultFileName = path.basename(file.path, ext);
-			processBundleFile(file, ext)
+			processBundleFile(file, ext, bundleHandler)
 				.pipe(concat(resultFileName))
 				.pipe(pushTo(this))
 				.on('end', cb);

@@ -1,6 +1,7 @@
 var should = require('chai').should();
 var bundle = require('../index');
 var gulp = require('gulp');
+var insert = require('gulp-insert');
 var map = require('map-stream');
 var path = require('path');
 var fs = require('fs');
@@ -12,10 +13,20 @@ function pushTo(array) {
 	});
 }
 
-var sampleOutputContent = 'function f1() {\n\
+var sample2OutputContent = 'function f1() {\n\
 }\n\
 function f2() {\n\
 }\n\
+function f3() {\n\
+}';
+
+var sample3OutputContent = 'test\n\
+function f1() {\n\
+}\n\
+test\n\
+function f2() {\n\
+}\n\
+test\n\
 function f3() {\n\
 }';
 
@@ -41,7 +52,21 @@ describe('#gulp-bundle-file', function() {
 			.on('end', function () {
 				var filePath = 'test/output/sample.js';
 				fs.existsSync(filePath).should.equal(true);
-				fs.readFileSync(filePath, { encoding: 'utf8' }).should.equal(sampleOutputContent);
+				fs.readFileSync(filePath, { encoding: 'utf8' }).should.equal(sample2OutputContent);
+				done();
+			});
+	})
+
+	it('files concat with handler', function (done) {
+		gulp.src('test/data/sample.js.bundle')
+			.pipe(bundle.concat(function (bundleSrc) {
+				return bundleSrc.pipe(insert.prepend('test\n'));
+			}))
+			.pipe(gulp.dest('test/output'))
+			.on('end', function () {
+				var filePath = 'test/output/sample.js';
+				fs.existsSync(filePath).should.equal(true);
+				fs.readFileSync(filePath, { encoding: 'utf8' }).should.equal(sample3OutputContent);
 				done();
 			});
 	})
