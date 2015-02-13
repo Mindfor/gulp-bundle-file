@@ -2,12 +2,12 @@
 
 Package      | gulp-concat
 -------------|------------
-Description  | Concatenates files specified in `.bundle` file.
+Description  | Concatenate files specified in `.bundle` file.
 Node Version | >= 0.10
 
 # Usage
 
-Next code will concat files specified in `.bundle` files. Output files will have name without `.bundle` extension.
+Next code will concatenate files specified in `.bundle` files. Output files will have name without `.bundle` extension.
 
 ```JavaScript
 var bundle = require('gulp-bundle-file');
