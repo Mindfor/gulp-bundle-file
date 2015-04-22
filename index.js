@@ -5,6 +5,7 @@ var concat = require('gulp-concat');
 var gutil = require('gulp-util');
 var fs = require('vinyl-fs');
 var map = require('map-stream');
+var sourcemaps = require('gulp-sourcemaps');
 
 var pluginName = 'gulp-bundle-file';
 
@@ -87,10 +88,14 @@ module.exports = {
 		return through2.obj(function(file, enc, cb) {
 			if (!checkFile(file, cb))
 				return;
-
-			var ext = path.extname(file.path);
+			
+			var ext = path.extname(file.path).toLowerCase();
 			var resultFileName = path.basename(file.path, ext);
-			processBundleFile(file, ext, bundleHandler)
+			
+			var bundleFiles = processBundleFile(file, ext, bundleHandler);
+			if (file.sourceMap)
+				bundleFiles = bundleFiles.pipe(sourcemaps.init());
+			bundleFiles
 				.pipe(concat(resultFileName))
 				.pipe(pushTo(this))
 				.on('end', cb);
