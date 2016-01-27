@@ -30,17 +30,25 @@ function checkFile(file, cb) {
 	return true;
 }
 
-// creates new pipe for files from bundle
-function processBundleFile(file, bundleExt, bundleHandler) {
+//builds path for each line in file - handles `!` negated file paths
+function createPath (file, line) {
 	// get paths
 	var relative = path.relative(process.cwd(), file.path);
 	var dir = path.dirname(relative);
+	var filePath;
 
+	filePath = (line[0] === '!') ? '!' + path.join(dir, line.substr(1)) : path.join(dir, line);
+
+	return filePath;
+}
+
+// creates new pipe for files from bundle
+function processBundleFile(file, bundleExt, bundleHandler) {
 	// get bundle files
 	var lines = file.contents.toString().split('\n');
 	var resultFilePaths = [];
 	lines.forEach(function(line) {
-		resultFilePaths.push(path.join(dir, line));
+		resultFilePaths.push(createPath(file, line));
 	});
 
 	// find files and send to buffer
@@ -88,10 +96,10 @@ module.exports = {
 		return through2.obj(function(file, enc, cb) {
 			if (!checkFile(file, cb))
 				return;
-			
+
 			var ext = path.extname(file.path).toLowerCase();
 			var resultFileName = path.basename(file.path, ext);
-			
+
 			var bundleFiles = processBundleFile(file, ext, bundleHandler);
 			if (file.sourceMap)
 				bundleFiles = bundleFiles.pipe(sourcemaps.init());
