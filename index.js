@@ -35,12 +35,16 @@ function processBundleFile(file, bundleExt, bundleHandler) {
 	// get paths
 	var relative = path.relative(process.cwd(), file.path);
 	var dir = path.dirname(relative);
-
+	
 	// get bundle files
 	var lines = file.contents.toString().split('\n');
 	var resultFilePaths = [];
 	lines.forEach(function(line) {
-		resultFilePaths.push(path.join(dir, line));
+		// handle `!` negated file paths
+		var linePath = line[0] === '!'
+			? '!' + path.join(dir, line.substr(1))
+			: path.join(dir, line);
+		resultFilePaths.push(linePath);
 	});
 
 	// find files and send to buffer
@@ -88,10 +92,10 @@ module.exports = {
 		return through2.obj(function(file, enc, cb) {
 			if (!checkFile(file, cb))
 				return;
-			
+
 			var ext = path.extname(file.path).toLowerCase();
 			var resultFileName = path.basename(file.path, ext);
-			
+
 			var bundleFiles = processBundleFile(file, ext, bundleHandler);
 			if (file.sourceMap)
 				bundleFiles = bundleFiles.pipe(sourcemaps.init());
