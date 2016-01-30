@@ -111,4 +111,20 @@ describe('#gulp-bundle-file', function() {
 				done();
 			});
 	});
+	
+	it('files list with variable', function (done) {
+		var files = [];
+		gulp.src('test/data/sample_variable.js.bundle')
+			.pipe(bundle.list({
+				insidepath: "inside"	
+			}))
+			.pipe(pushTo(files))
+			.on('end', function () {
+				files.should.have.length(3);
+				path.relative(process.cwd(), files[0].path).should.equal('test/data/file1.js');
+				path.relative(process.cwd(), files[1].path).should.equal('test/data/file2.js');
+				path.relative(process.cwd(), files[2].path).should.equal('test/data/inside/file3.js');
+				done();
+			});
+	});
 });

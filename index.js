@@ -24,27 +24,19 @@ function checkFile(file, cb) {
 		return false;
 	}
 	if (file.isStream()) {
-		cb(new PluginError(pluginName, 'Streaming not supported'));
+		cb(new gutil.PluginError(pluginName, 'Streaming not supported'));
 		return false;
 	}
 	return true;
 }
 
 // creates new pipe for files from bundle
-function processBundleFile(file, bundleExt, bundleHandler) {
-	// get paths
-	var relative = path.relative(process.cwd(), file.path);
-	var dir = path.dirname(relative);
-	
+function processBundleFile(file, bundleExt, variables, bundleHandler) {
 	// get bundle files
 	var lines = file.contents.toString().split('\n');
 	var resultFilePaths = [];
 	lines.forEach(function(line) {
-		// handle `!` negated file paths
-		var linePath = line[0] === '!'
-			? '!' + path.join(dir, line.substr(1))
-			: path.join(dir, line);
-		resultFilePaths.push(linePath);
+		resultFilePaths.push(getFilePathFromLine(file, line, variables));
 	});
 
 	// find files and send to buffer
@@ -55,8 +47,34 @@ function processBundleFile(file, bundleExt, bundleHandler) {
 	return bundleSrc;
 }
 
+// parses file path from line in bundle file
+function getFilePathFromLine(bundleFile, line, variables) {
+	// get paths
+	var relative = path.relative(process.cwd(), bundleFile.path);
+	var dir = path.dirname(relative);
+	
+	// handle variables
+	var varRegex = /@{([^}]+)}/;
+	var match;
+	while (match = line.match(varRegex)) {
+		var varName = match[1];
+		if (!variables || typeof(variables[varName]) == 'undefined')
+			throw new gutil.PluginError(pluginName, relative +  ': variable "' + varName + '" is not specified');
+		
+		var varValue =  variables[varName];
+		line = line.substr(0, match.index) + varValue + line.substr(match.index + match[0].length);
+	}
+	
+	// handle `!` negated file paths
+	var filePath = line[0] === '!'
+		? '!' + path.join(dir, line.substr(1))
+		: path.join(dir, line);
+	
+	return filePath;
+}
+
 // recursively processes files and unwraps bundle files
-function recursiveBundle(bundleExt) {
+function recursiveBundle(bundleExt, variables) {
 	return through2.obj(function(file, enc, cb) {
 		if (!checkFile(file, cb))
 			return;
@@ -66,7 +84,7 @@ function recursiveBundle(bundleExt) {
 			return cb(null, file);
 
 		// bundle file should be parsed
-		processBundleFile(file, bundleExt)
+		processBundleFile(file, bundleExt, variables)
 			.pipe(pushTo(this))
 			.on('end', cb);
 	});
@@ -74,13 +92,13 @@ function recursiveBundle(bundleExt) {
 
 module.exports = {
 	// addes files from bundle to current pipe
-	list: function () {
+	list: function (variables) {
 		return through2.obj(function(file, enc, cb) {
 			if (!checkFile(file, cb))
 				return;
 
 			var ext = path.extname(file.path).toLowerCase();
-			processBundleFile(file, ext)
+			processBundleFile(file, ext, variables)
 				.pipe(pushTo(this))
 				.on('end', cb);
 		});
@@ -88,7 +106,13 @@ module.exports = {
 
 	// concatenates files from bundle and replaces bundle file in current pipe
 	// first parameter is function that handles source stream for each bundle
-	concat: function (bundleHandler) {
+	concat: function (variables, bundleHandler) {
+		// handle if bundleHandler specified in first argument 
+		if (!bundleHandler && typeof(variables) === 'function') {
+			bundleHandler = variables;
+			variables = null;
+		}
+		
 		return through2.obj(function(file, enc, cb) {
 			if (!checkFile(file, cb))
 				return;
@@ -96,7 +120,7 @@ module.exports = {
 			var ext = path.extname(file.path).toLowerCase();
 			var resultFileName = path.basename(file.path, ext);
 
-			var bundleFiles = processBundleFile(file, ext, bundleHandler);
+			var bundleFiles = processBundleFile(file, ext, variables, bundleHandler);
 			if (file.sourceMap)
 				bundleFiles = bundleFiles.pipe(sourcemaps.init());
 			bundleFiles
