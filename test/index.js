@@ -37,7 +37,7 @@ function f2() {\n\
 }\n\
 function f3() {\n\
 }\n\
-//# sourceMappingURL=sample.js.map';
+//# sourceMappingURL=sample.js.map\n';
 
 var sample4OutputMap = '{"version":3,"sources":["file1.js","file2.js","file3.js"],"names":[],"mappings":"AAAA;AACA;ACDA;AACA;ACDA;AACA","file":"sample.js","sourcesContent":["function f1() {\\n}","function f2() {\\n}","function f3() {\\n}"],"sourceRoot":"/source/"}';
 
