@@ -19,6 +19,21 @@ gulp.task('bundles', function() {
 });
 ```
 
+Lines inside `.bundle` file may contain variables like `@{myVar}`:
+
+```JavaScript
+var bundle = require('gulp-bundle-file');
+
+gulp.task('bundles', function() {
+	return gulp.src('./bundles/*.bundle')
+		.pipe(bundle.concat({ // here should be specified variable values
+			myVar1: 'directory/subDirectory',
+			myVar2: 'another-dir'
+		})) // concat files in each bundles
+		.pipe(gulp.dest('./dist/'));
+});
+```
+
 You can process files specified in each `.bundle` with handler:
 
 ```JavaScript
@@ -63,3 +78,9 @@ file3.js
 ```
 
 ... then output file will have name `test.js` with content of `file1.js` + `file2.js` + `file3.js`.
+
+Bundle file with variables:
+```
+@{myVar1}/subpath/*.js
+directory/@{myVar2}/**.js
+```
