@@ -98,4 +98,17 @@ describe('#gulp-bundle-file', function() {
 				done();
 			});
 	})
+	
+	it('files list with `!`', function (done) {
+		var files = [];
+		gulp.src('test/data/sample2.js.bundle')
+			.pipe(bundle.list())
+			.pipe(pushTo(files))
+			.on('end', function () {
+				files.should.have.length(2);
+				path.relative(process.cwd(), files[0].path).should.equal('test/data/file2.js');
+				path.relative(process.cwd(), files[1].path).should.equal('test/data/inside/file3.js');
+				done();
+			});
+	});
 });

@@ -30,25 +30,21 @@ function checkFile(file, cb) {
 	return true;
 }
 
-//builds path for each line in file - handles `!` negated file paths
-function createPath (file, line) {
+// creates new pipe for files from bundle
+function processBundleFile(file, bundleExt, bundleHandler) {
 	// get paths
 	var relative = path.relative(process.cwd(), file.path);
 	var dir = path.dirname(relative);
-	var filePath;
-
-	filePath = (line[0] === '!') ? '!' + path.join(dir, line.substr(1)) : path.join(dir, line);
-
-	return filePath;
-}
-
-// creates new pipe for files from bundle
-function processBundleFile(file, bundleExt, bundleHandler) {
+	
 	// get bundle files
 	var lines = file.contents.toString().split('\n');
 	var resultFilePaths = [];
 	lines.forEach(function(line) {
-		resultFilePaths.push(createPath(file, line));
+		// handle `!` negated file paths
+		var linePath = line[0] === '!'
+			? '!' + path.join(dir, line.substr(1))
+			: path.join(dir, line);
+		resultFilePaths.push(linePath);
 	});
 
 	// find files and send to buffer
