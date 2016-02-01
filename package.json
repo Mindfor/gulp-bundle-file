@@ -1,7 +1,7 @@
 {
 	"name": "gulp-bundle-file",
 	"description": "Concatenates files from .bundle",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"author": "Mindfor <info@mindfor.ru> (http://mindfor.ru)",
 	"homepage": "https://github.com/Mindfor/gulp-bundle-file",
 	"repository": {

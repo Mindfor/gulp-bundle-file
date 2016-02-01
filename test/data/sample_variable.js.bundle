@@ -1,3 +1,4 @@
 file1.js
 file2.js
 @{insidepath}/second.js.bundle
+@{insidepath}/second_variable.js.bundle

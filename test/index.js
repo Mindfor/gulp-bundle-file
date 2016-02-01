@@ -116,14 +116,16 @@ describe('#gulp-bundle-file', function() {
 		var files = [];
 		gulp.src('test/data/sample_variable.js.bundle')
 			.pipe(bundle.list({
-				insidepath: "inside"	
+				insidepath: 'inside',
+				root: './test/data'
 			}))
 			.pipe(pushTo(files))
 			.on('end', function () {
-				files.should.have.length(3);
+				files.should.have.length(4);
 				path.relative(process.cwd(), files[0].path).should.equal('test/data/file1.js');
 				path.relative(process.cwd(), files[1].path).should.equal('test/data/file2.js');
 				path.relative(process.cwd(), files[2].path).should.equal('test/data/inside/file3.js');
+				path.relative(process.cwd(), files[3].path).should.equal('test/data/file4.js');
 				done();
 			});
 	});

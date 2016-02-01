@@ -41,7 +41,7 @@ function processBundleFile(file, bundleExt, variables, bundleHandler) {
 
 	// find files and send to buffer
 	var bundleSrc = fs.src(resultFilePaths)
-		.pipe(recursiveBundle(bundleExt));
+		.pipe(recursiveBundle(bundleExt, variables));
 	if (bundleHandler && typeof bundleHandler === 'function')
 		bundleSrc = bundleHandler(bundleSrc);
 	return bundleSrc;
@@ -58,18 +58,31 @@ function getFilePathFromLine(bundleFile, line, variables) {
 	var match;
 	while (match = line.match(varRegex)) {
 		var varName = match[1];
-		if (!variables || typeof(variables[varName]) == 'undefined')
+		if (!variables || typeof(variables[varName]) === 'undefined')
 			throw new gutil.PluginError(pluginName, relative +  ': variable "' + varName + '" is not specified');
 		
 		var varValue =  variables[varName];
 		line = line.substr(0, match.index) + varValue + line.substr(match.index + match[0].length);
 	}
 	
-	// handle `!` negated file paths
-	var filePath = line[0] === '!'
-		? '!' + path.join(dir, line.substr(1))
-		: path.join(dir, line);
+	if (line === '')
+		return null;
 	
+	// handle `!` negated file paths
+	var negative = line[0] === '!';
+	if (negative)
+		line = line.substr(1);
+
+	// get file path
+	var filePath;
+	if (line.indexOf('./') === 0)
+		filePath = line.substr(2);
+	else
+		filePath = path.join(dir, line);
+	
+	// return path
+	if (negative)
+		return '!' + filePath;
 	return filePath;
 }
 
