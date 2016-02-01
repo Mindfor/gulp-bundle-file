@@ -33,7 +33,7 @@ function checkFile(file, cb) {
 // creates new pipe for files from bundle
 function processBundleFile(file, bundleExt, variables, bundleHandler) {
 	// get bundle files
-	var lines = file.contents.toString().split('\n');
+	var lines = file.contents.toString().trim().split('\n');
 	var resultFilePaths = [];
 	lines.forEach(function(line) {
 		resultFilePaths.push(getFilePathFromLine(file, line, variables));
