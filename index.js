@@ -36,7 +36,9 @@ function processBundleFile(file, bundleExt, variables, bundleHandler) {
 	var lines = file.contents.toString().split('\n');
 	var resultFilePaths = [];
 	lines.forEach(function(line) {
-		resultFilePaths.push(getFilePathFromLine(file, line, variables));
+		var filePath = getFilePathFromLine(file, line, variables);
+		if (filePath)
+			resultFilePaths.push(filePath);
 	});
 
 	// find files and send to buffer

@@ -1,7 +1,7 @@
 {
 	"name": "gulp-bundle-file",
 	"description": "Concatenates files from .bundle",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"author": "Mindfor <info@mindfor.ru> (http://mindfor.ru)",
 	"homepage": "https://github.com/Mindfor/gulp-bundle-file",
 	"repository": {
@@ -24,7 +24,7 @@
 		"gulp-util": "^3.0.7",
 		"gulp-sourcemaps": "^1.6.0",
 		"through2": "^2.0.0",
-		"map-stream": "0.0.6",
+		"map-stream": "~0.0.6",
 		"vinyl-fs": "^2.3.1"
 	},
 	"devDependencies": {
