@@ -61,7 +61,7 @@ function getFilePathFromLine(bundleFile, line, variables) {
 	while (match = line.match(varRegex)) {
 		var varName = match[1];
 		if (!variables || typeof (variables[varName]) === 'undefined')
-			throw new gutil.PluginError(pluginName, relative + ': variable "' + varName + '" is not specified');
+			throw new gutil.PluginError(pluginName, bundleFile.path + ': variable "' + varName + '" is not specified');
 
 		var varValue = variables[varName];
 		line = line.substr(0, match.index) + varValue + line.substr(match.index + match[0].length);
