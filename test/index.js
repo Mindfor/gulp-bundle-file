@@ -2,6 +2,7 @@ var should = require('chai').should();
 var bundle = require('../index');
 var gulp = require('gulp');
 var insert = require('gulp-insert');
+var plumber = require('gulp-plumber');
 var sourcemaps = require('gulp-sourcemaps');
 var map = require('map-stream');
 var path = require('path');
@@ -114,7 +115,7 @@ describe('#gulp-bundle-file', function() {
 	
 	it('files list with variable', function (done) {
 		var files = [];
-		gulp.src('test/data/sample_variable.js.bundle')
+		gulp.src('test/data/sample-variable.js.bundle')
 			.pipe(bundle.list({
 				insidepath: 'inside',
 				root: './test/data'
@@ -127,6 +128,48 @@ describe('#gulp-bundle-file', function() {
 				path.relative(process.cwd(), files[2].path).should.equal('test/data/inside/file3.js');
 				path.relative(process.cwd(), files[3].path).should.equal('test/data/file4.js');
 				done();
+			});
+	});
+	
+	it('error in bundle', function (done) {
+		var hasError = false;
+		
+		function errorHandler(error) {
+			if (error.message.startsWith('File not found with singular glob'))
+				hasError = true;
+			this.emit("end");
+		}
+		
+		gulp.src('test/data/sample-error-notfound.js.bundle')
+		 	.pipe(plumber(errorHandler))
+		 	.pipe(bundle.list())
+			.pipe(gulp.dest('test/output'))
+			.on('end', function () {
+				if (hasError)
+					done();
+				else
+					done(new Error('File not found error was not thrown'));
+			});
+	});
+	
+	it('error in internal bundle', function (done) {
+		var hasError = false;
+		
+		function errorHandler(error) {
+			if (error.message.startsWith('File not found with singular glob'))
+				hasError = true;
+			this.emit("end");
+		}
+		
+		gulp.src('test/data/sample-error-internal.js.bundle')
+		 	.pipe(plumber(errorHandler))
+		 	.pipe(bundle.list())
+			.pipe(gulp.dest('test/output'))
+			.on('end', function () {
+				if (hasError)
+					done();
+				else
+					done(new Error('File not found error was not thrown'));
 			});
 	});
 });
