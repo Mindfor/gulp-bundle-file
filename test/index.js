@@ -1,10 +1,11 @@
-var should = require('chai').should();
-var through2 = require('through2');
 var bundle = require('../index');
+var should = require('chai').should();
 var gulp = require('gulp');
 var insert = require('gulp-insert');
 var plumber = require('gulp-plumber');
+var less = require('gulp-less');
 var sourcemaps = require('gulp-sourcemaps');
+var through2 = require('through2');
 var map = require('map-stream');
 var path = require('path');
 var fs = require('fs');
@@ -43,7 +44,7 @@ function f3() {\n\
 
 var sample4OutputMap = '{"version":3,"sources":["file1.js","file2.js","file3.js"],"names":[],"mappings":"AAAA;AACA;ACDA;AACA;ACDA;AACA","file":"sample.js","sourcesContent":["function f1() {\\n}","function f2() {\\n}","function f3() {\\n}"],"sourceRoot":"/source/"}';
 
-describe('#bundle-file', function() {
+describe('#bundle-file', function () {
 	it('files list', function (done) {
 		var files = [];
 		gulp.src('test/data/sample.js.bundle')
@@ -83,7 +84,7 @@ describe('#bundle-file', function() {
 				done();
 			});
 	})
-	
+
 	it('files concat with sourcemaps', function (done) {
 		gulp.src('test/data/sample.js.bundle')
 			.pipe(sourcemaps.init())
@@ -100,7 +101,7 @@ describe('#bundle-file', function() {
 				done();
 			});
 	})
-	
+
 	it('files list with `!`', function (done) {
 		var files = [];
 		gulp.src('test/data/sample2.js.bundle')
@@ -113,7 +114,7 @@ describe('#bundle-file', function() {
 				done();
 			});
 	});
-	
+
 	it('files list with variable', function (done) {
 		var files = [];
 		gulp.src('test/data/sample-variable.js.bundle')
@@ -133,19 +134,19 @@ describe('#bundle-file', function() {
 	});
 });
 
-describe('#bundle-file-errors', function () {	
+describe('#bundle-file-errors', function () {
 	it('error in bundle', function (done) {
 		var hasError = false;
-		
+
 		function errorHandler(error) {
 			if (error.message.startsWith('File not found with singular glob'))
 				hasError = true;
-			this.emit("end");
+			this.emit('end');
 		}
-		
+
 		gulp.src('test/data/sample-error-notfound.js.bundle')
-		 	.pipe(plumber(errorHandler))
-		 	.pipe(bundle.list())
+			.pipe(plumber(errorHandler))
+			.pipe(bundle.list())
 			.pipe(gulp.dest('test/output'))
 			.on('end', function () {
 				if (hasError)
@@ -154,19 +155,19 @@ describe('#bundle-file-errors', function () {
 					done(new Error('File not found error was not thrown'));
 			});
 	});
-	
+
 	it('error in internal bundle', function (done) {
 		var hasError = false;
-		
+
 		function errorHandler(error) {
 			if (error.message.startsWith('File not found with singular glob'))
 				hasError = true;
-			this.emit("end");
+			this.emit('end');
 		}
-		
+
 		gulp.src('test/data/sample-error-internal.js.bundle')
-		 	.pipe(plumber(errorHandler))
-		 	.pipe(bundle.list())
+			.pipe(plumber(errorHandler))
+			.pipe(bundle.list())
 			.pipe(gulp.dest('test/output'))
 			.on('end', function () {
 				if (hasError)
@@ -175,15 +176,15 @@ describe('#bundle-file-errors', function () {
 					done(new Error('File not found error was not thrown'));
 			});
 	});
-	
+
 	it('error processing file inside bundle', function (done) {
 		var hasError = false;
-		
+
 		function errorHandler(error) {
 			hasError = true;
-			this.emit("end");
+			this.emit('end');
 		}
-		
+
 		gulp.src('test/data/sample.js.bundle')
 			.pipe(plumber(errorHandler))
 			.pipe(bundle.concat(function (bundleSrc) {
@@ -202,5 +203,27 @@ describe('#bundle-file-errors', function () {
 				else
 					done(new Error('Processing file error was not thrown'));
 			});
+	});
+	
+	it('error in less', function (done) {
+		var hasError = false;
+		
+		function errorHandler(error) {
+			hasError = true;
+			this.emit('end');
+		}
+		
+		gulp.src('test/data/sample.css.bundle')
+			.pipe(plumber(errorHandler))
+			.pipe(bundle.concat(function (bundleSrc) {
+				return bundleSrc.pipe(less());
+			}))
+			.pipe(gulp.dest('test/output'))
+			.on('end', function () {
+				if (hasError)
+					done();
+				else
+					done(new Error('Less error was not thrown'));
+			})
 	});
 });

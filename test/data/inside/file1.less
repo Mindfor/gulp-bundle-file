@@ -1,0 +1,10 @@
+.a {
+	color: red;
+}
+
+.b {
+	&:extend(.a);
+	border: solid 1px blue;
+}
+
+@import 'file2.less';
