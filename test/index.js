@@ -1,4 +1,5 @@
 var should = require('chai').should();
+var through2 = require('through2');
 var bundle = require('../index');
 var gulp = require('gulp');
 var insert = require('gulp-insert');
@@ -42,7 +43,7 @@ function f3() {\n\
 
 var sample4OutputMap = '{"version":3,"sources":["file1.js","file2.js","file3.js"],"names":[],"mappings":"AAAA;AACA;ACDA;AACA;ACDA;AACA","file":"sample.js","sourcesContent":["function f1() {\\n}","function f2() {\\n}","function f3() {\\n}"],"sourceRoot":"/source/"}';
 
-describe('#gulp-bundle-file', function() {
+describe('#bundle-file', function() {
 	it('files list', function (done) {
 		var files = [];
 		gulp.src('test/data/sample.js.bundle')
@@ -130,7 +131,9 @@ describe('#gulp-bundle-file', function() {
 				done();
 			});
 	});
-	
+});
+
+describe('#bundle-file-errors', function () {	
 	it('error in bundle', function (done) {
 		var hasError = false;
 		
@@ -170,6 +173,34 @@ describe('#gulp-bundle-file', function() {
 					done();
 				else
 					done(new Error('File not found error was not thrown'));
+			});
+	});
+	
+	it('error processing file inside bundle', function (done) {
+		var hasError = false;
+		
+		function errorHandler(error) {
+			hasError = true;
+			this.emit("end");
+		}
+		
+		gulp.src('test/data/sample.js.bundle')
+			.pipe(plumber(errorHandler))
+			.pipe(bundle.concat(function (bundleSrc) {
+				return bundleSrc
+					.pipe(through2.obj(function (file, enc, cb) {
+						cb(new Error('Error occured inside bundle file processing'));
+					}))
+					.pipe(through2.obj(function (file, enc, cb) {
+						cb(null, file);
+					}));
+			}))
+			.pipe(gulp.dest('test/output'))
+			.on('end', function () {
+				if (hasError)
+					done();
+				else
+					done(new Error('Processing file error was not thrown'));
 			});
 	});
 });

@@ -3,6 +3,7 @@ var path = require('path')
 var through2 = require('through2');
 var concat = require('gulp-concat');
 var gutil = require('gulp-util');
+var plumber = require('gulp-plumber');
 var fs = require('vinyl-fs');
 var map = require('map-stream');
 var sourcemaps = require('gulp-sourcemaps');
@@ -41,16 +42,18 @@ function processBundleFile(file, bundleExt, variables, bundleHandler, errorCallb
 			resultFilePaths.push(filePath);
 	});
 
+	if (!errorCallback)
+		errorCallback = function () { };
+
 	// find files and send to buffer
 	var bundleSrc = fs.src(resultFilePaths)
-		.on('error', function (error) {
-			if (errorCallback)
-				errorCallback(error);
-		})
+		.on('error', errorCallback) // handle file not found errors
+		.pipe(plumber(errorCallback)) // handle other errors inside pipeline 
 		.pipe(recursiveBundle(bundleExt, variables, errorCallback));
+
 	if (bundleHandler && typeof bundleHandler === 'function')
 		bundleSrc = bundleHandler(bundleSrc);
-	return bundleSrc;
+	return bundleSrc.pipe(plumber.stop());
 }
 
 // parses file path from line in bundle file
